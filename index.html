@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web App Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <style>
+        /* แต่ง UI เพิ่มเติมให้ดูคลีน */
+        body { background-color: #f3f4f6; font-family: 'Kanit', sans-serif; }
+        .swiper-pagination-bullet-active { background-color: #3b82f6 !important; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div class="swiper mySwiper w-full max-w-md mx-auto aspect-[16/9] bg-white shadow-sm">
+        <div class="swiper-wrapper" id="banner-container">
+            </div>
+        <div class="swiper-pagination"></div>
+    </div>
+
+    <div class="max-w-md mx-auto mt-4 px-4">
+        <div class="bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-xl shadow-sm flex items-center">
+            <svg class="w-5 h-5 mr-2 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+            <marquee id="news-container" class="font-medium">กำลังโหลดข่าวสาร...</marquee>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto mt-6 px-4">
+        <h2 class="text-gray-700 font-bold mb-4 text-lg">เมนูการใช้งาน</h2>
+        <div class="grid grid-cols-3 gap-4" id="menu-container">
+            </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    
+    <script>
+        // ใส่ URL ของ Web App ที่ได้จาก Google Apps Script
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1I2eJ5y1Rrca5wHEEzbs71DXcvSNJa0TZEGbYRXgxVAc3zlc4Ir25MLpoI0jVmKzGlQ/exec';
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    renderBanners(result.data.banners);
+                    renderNews(result.data.news);
+                    renderMenus(result.data.menus);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function renderBanners(banners) {
+            const container = document.getElementById('banner-container');
+            container.innerHTML = banners.map(b => `
+                <div class="swiper-slide cursor-pointer" onclick="window.location.href='${b.LinkURL}'">
+                    <img src="${b.ImageURL}" class="w-full h-full object-cover rounded-b-2xl" alt="Banner">
+                </div>
+            `).join('');
+            
+            // Initialize Swiper
+            new Swiper(".mySwiper", {
+                pagination: { el: ".swiper-pagination", dynamicBullets: true },
+                autoplay: { delay: 3000, disableOnInteraction: false },
+            });
+        }
+
+        function renderNews(news) {
+            const container = document.getElementById('news-container');
+            container.innerHTML = news.map(n => `[${n.Date}] ${n.Title} - ${n.Content}`).join(' | ');
+        }
+
+        function renderMenus(menus) {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = menus.map(m => `
+                <a href="${m.LinkURL}" class="flex flex-col items-center bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow active:scale-95">
+                    <img src="${m.IconURL}" class="w-10 h-10 mb-2" alt="${m.MenuName}">
+                    <span class="text-xs text-gray-600 text-center font-medium">${m.MenuName}</span>
+                </a>
+            `).join('');
+        }
+
+        // เริ่มต้นดึงข้อมูลเมื่อโหลดหน้าเว็บ
+        fetchData();
+    </script>
+</body>
+</html>
